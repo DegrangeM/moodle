@@ -741,10 +741,11 @@ function scorm_grade_user_attempt($scorm, $userid, $attempt=1) {
             if (($userdata->status == 'completed') || ($userdata->status == 'passed')) {
                 $attemptscore->scoes++;
             }
-            if (!empty($userdata->score_raw) || (isset($scorm->type) && $scorm->type == 'sco' && isset($userdata->score_raw))) {
+            if (!empty($userdata->score_raw) || (isset($sco->scormtype) && $sco->scormtype == 'sco')) {
+                $scoreraw = empty($userdata->score_raw) ? 0 : $userdata->score_raw;
                 $attemptscore->values++;
-                $attemptscore->sum += $userdata->score_raw;
-                $attemptscore->max = ($userdata->score_raw > $attemptscore->max) ? $userdata->score_raw : $attemptscore->max;
+                $attemptscore->sum += $scoreraw;
+                $attemptscore->max = ($scoreraw > $attemptscore->max) ? $scoreraw : $attemptscore->max;
                 if (isset($userdata->timemodified) && ($userdata->timemodified > $attemptscore->lastmodify)) {
                     $attemptscore->lastmodify = $userdata->timemodified;
                 } else {
