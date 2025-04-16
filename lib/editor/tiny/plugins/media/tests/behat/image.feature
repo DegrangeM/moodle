@@ -17,6 +17,14 @@ Feature: Use the TinyMCE editor to upload an image
     And I click on "Browse repositories" "button" in the "Insert image" "dialogue"
     Then "File picker" "dialogue" should exist
 
+  Scenario: Focus returns to the correct location after closing a nested FilePicker
+    Given I log in as "admin"
+    And I open my profile in edit mode
+    When I click on the "Image" button for the "Description" TinyMCE editor
+    And I press "Browse repositories"
+    When I press the escape key
+    Then the focused element is "Browse repositories" "button"
+
   @_file_upload @test_tiny
   Scenario: Browsing repositories in the TinyMCE editor shows the FilePicker and upload url image
     Given I log in as "admin"
@@ -34,11 +42,11 @@ Feature: Use the TinyMCE editor to upload an image
     And I click on the "Image" button for the "Description" TinyMCE editor
     And I click on "Browse repositories" "button" in the "Insert image" "dialogue"
     And I upload "lib/editor/tiny/tests/behat/fixtures/moodle-logo.png" to the file picker for TinyMCE
-    And I set the field "How would you describe this image to someone who can't see it:" to "It's the Moodle"
+    And I set the field "How would you describe this image to someone who can't see it?" to "It's the Moodle"
     And I click on "Save" "button" in the "Image details" "dialogue"
     When I select the "img" element in position "0" of the "Description" TinyMCE editor
     And I click on the "Image" button for the "Description" TinyMCE editor
-    Then the field "How would you describe this image to someone who can't see it:" matches value "It's the Moodle"
+    Then the field "How would you describe this image to someone who can't see it?" matches value "It's the Moodle"
     # Note: This needs to be replaced with a label.
     And ".tiny_image_preview" "css_element" should be visible
 

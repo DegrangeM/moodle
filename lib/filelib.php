@@ -855,7 +855,7 @@ function file_get_all_files_in_draftarea(int $draftitemid, string $filepath = '/
 
     if (!empty($draftfiles)) {
         foreach ($draftfiles->list as $draftfile) {
-            if ($draftfile->type == 'file') {
+            if ($draftfile->type !== 'folder') {
                 $files[] = $draftfile;
             }
         }
@@ -1311,6 +1311,19 @@ function file_save_draft_area_files($draftitemid, $contextid, $component, $filea
     } else {
         return file_rewrite_urls_to_pluginfile($text, $draftitemid, $forcehttps);
     }
+}
+
+/**
+ * Clear a draft area.
+ *
+ * @param int $draftitemid Id of the draft area to clear.
+ * @return boolean success
+ */
+function file_clear_draft_area(int $draftitemid): bool {
+    global $USER;
+    $fs = get_file_storage();
+    $usercontext = context_user::instance($USER->id);
+    return $fs->delete_area_files($usercontext->id, 'user', 'draft', $draftitemid);
 }
 
 /**
@@ -3899,9 +3912,22 @@ class curl {
 
                 curl_setopt($curl, CURLOPT_URL, $redirecturl);
 
-                if (parse_url($currenturl)['host'] !== parse_url($redirecturl)['host']) {
+                // If CURLOPT_UNRESTRICTED_AUTH is empty/false, don't send credentials to other hosts.
+                // Ref: https://curl.se/libcurl/c/CURLOPT_UNRESTRICTED_AUTH.html.
+                $isdifferenthost = parse_url($currenturl)['host'] !== parse_url($redirecturl)['host'];
+                $sendauthentication = !empty($this->options['CURLOPT_UNRESTRICTED_AUTH']);
+                if ($isdifferenthost && !$sendauthentication) {
                     curl_setopt($curl, CURLOPT_HTTPAUTH, null);
                     curl_setopt($curl, CURLOPT_USERPWD, null);
+                    // Check whether the CURLOPT_HTTPHEADER is specified.
+                    if (!empty($this->options['CURLOPT_HTTPHEADER'])) {
+                        // Remove the "Authorization:" header, if any.
+                        $headerredirect = array_filter(
+                            $this->options['CURLOPT_HTTPHEADER'],
+                            fn($header) => strpos($header, 'Authorization:') === false
+                        );
+                        curl_setopt($curl, CURLOPT_HTTPHEADER, $headerredirect);
+                    }
                 }
 
                 $ret = curl_exec($curl);
